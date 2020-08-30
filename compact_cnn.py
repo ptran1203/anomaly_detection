@@ -19,14 +19,11 @@ from keras.layers import (
 from keras.models import Sequential, Model, model_from_json
 from keras.optimizers import Adam
 
-BASE_DIR = "/content/drive/My Drive/DAGN2007"
-
-
-
 class CompactModel:
-    def __init__(self, rst, lr):
+    def __init__(self, rst, lr, base_dir):
         self.rst = rst
         self.lr = lr
+        self.base_dir = base_dir
         self.seg_model = self.segment_model()
         self.cls_model = self.classification_model()
         self.compact_model = self.compact_cnn_model()
@@ -106,6 +103,54 @@ class CompactModel:
             ]
         )
         model.compile(optimizer=Adam(self.lr),
-                    loss=['mean_squared_error', 'binary_crossentropy'])
+                    loss=['mean_squared_error', 'binary_crossentropy'],
+                    # loss_weights=[1, 0.7]
+        )
 
         return model
+
+    def train(self, x, y, label, seg_epochs, cls_epochs, sample_weight=None):
+        print("Train segmetation model")
+        self.seg_his = self.seg_model.fit(x, y,
+                                          epochs=seg_epochs,
+                                          batch_size=64,
+                                          validation_split=0.1,
+                                          sample_weight=sample_weight)
+        print("Train classification model")
+        self.cls_his = self.compact_model.fit(x, [y, label],
+                                          epochs=cls_epochs,
+                                          batch_size=64,
+                                          validation_split=0.1,
+                                          sample_weight=[
+                                            sample_weight,
+                                            sample_weight
+                                        ])
+        
+    def show_output(self, x, y, idx):
+        mask_rst = self.rst//8
+        shape = (1, self.rst, self.rst, 1)
+        image = x[idx].reshape((1, self.rst, self.rst, 1))
+        mask = y[idx].reshape((1, mask_rst, mask_rst, 1))
+
+        seg, score = self.compact_model.predict(image)
+        plt.figure(figsize=(18,10))
+        plt.subplot(131)
+        plt.imshow(image[0].reshape(self.rst,self.rst))
+        plt.subplot(132)
+        segmap = seg[0].reshape((28,28))
+        plt.imshow(segmap.astype('uint8'))
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        plt.text(0.2, 0.1, f'Score={score[0]}', fontsize=14,
+                verticalalignment='top', bbox=props)
+        plt.subplot(133)
+        plt.imshow(mask[0].reshape(mask_rst, mask_rst))
+        plt.show()
+
+    def save_weight(self):
+        self.seg_model.save_weights(self.base_dir + '/seg_model.h5')
+        self.cls_model.save_weights(self.base_dir + '/cls_model.h5')
+
+    def load_weight(self):
+        self.seg_model.load_weights(self.base_dir + '/seg_model.h5')
+        self.cls_model.load_weights(self.base_dir + '/cls_model.h5')
+
