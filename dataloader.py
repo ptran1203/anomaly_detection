@@ -43,7 +43,7 @@ class DataGenerator:
             return self.dataset_x[to_return]
 
 
-    def augment(self, x, y, for_seg=True):
+    def augment_one(self, x, y, for_seg=True):
         seed = np.random.randint(0, 100)
         new_x = utils.transform(x, seed)
         if for_seg:
@@ -60,7 +60,7 @@ class DataGenerator:
             imgs.append(x[i])
             labels.append(y[i])
             for _ in range(self.augment):
-                _x, _y = self.augment(x[i], y[i], for_seg)
+                _x, _y = self.augment_one(x[i], y[i], for_seg)
                 imgs.append(_x)
                 labels.append(_y)
 
