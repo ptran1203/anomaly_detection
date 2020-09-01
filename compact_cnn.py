@@ -120,6 +120,8 @@ class CompactModel:
 
 
     def train_model(self, model, data_gen, epochs, sample_weight):
+        print(" ==== Train model {} ====".format(model))
+        print("Train on {} samples".format(len(data_gen.x)))
         history = {"loss": [], "val_loss": []}
         if model == 'seg':
             train_model = self.seg_model
@@ -130,7 +132,8 @@ class CompactModel:
 
         for e in range(epochs):
             start_time = datetime.datetime.now()
-            print("Train epochs {}/{} - ".format(e, epochs), end="")
+            print("Train epochs {}/{} - ".format(e + 1, epochs), end="")
+
             batch_loss = batch_val_loss = []
             for img, mask in next_batch():
                 loss = train_model.train_on_batch(img, mask)
@@ -152,11 +155,11 @@ class CompactModel:
     def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None):
         self.seg_his = self.train_model('seg', data_gen, seg_epochs, sample_weight)
         self.cls_his = self.train_model('cls', data_gen, cls_epochs, sample_weight)
-        self.plot_history()
+        self.plot_history(self.seg_his)
+        self.plot_history(self.cls_his)
 
-
-    def plot_history(self):
-        his = self.seg_his
+    @staticmethod
+    def plot_history(his):
         plt.plot(his['loss'], label='train loss')
         plt.plot(his['val_loss'], label='val loss')
         plt.ylabel('loss')

@@ -1,6 +1,7 @@
 
 import numpy as np
 import utils
+from collections import Counter
 import os
 from sklearn.model_selection import train_test_split
 
@@ -23,6 +24,8 @@ class DataGenerator:
         ids = np.array(range(len(self.x)))
         for c in self.classes:
             self.per_class_ids[c] = ids[self.labels == c]
+
+        print(Counter(self.labels))
 
 
     def get_samples_for_class(self, c, samples=None):
