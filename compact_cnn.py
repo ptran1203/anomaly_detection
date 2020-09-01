@@ -139,7 +139,7 @@ class CompactModel:
                 batch_val_loss.append(loss)
 
             mean_batch_loss = np.mean(np.array(batch_loss))
-            # mean_batch_val_loss = np.mean(np.array(batch_val_loss))
+            mean_batch_val_loss = np.mean(np.array(batch_val_loss))
             history['loss'].append(mean_batch_loss)
             history['val_loss'].append(mean_batch_val_loss)
             print("Loss: {}, Val Loss: {} - {}".format(
