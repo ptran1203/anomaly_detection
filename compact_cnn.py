@@ -156,7 +156,7 @@ class CompactModel:
 
 
     def plot_history(self):
-        his = self.seg_his.history
+        his = self.seg_his
         plt.plot(his['loss'], label='train loss')
         plt.plot(his['val_loss'], label='val loss')
         plt.ylabel('loss')
