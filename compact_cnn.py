@@ -133,12 +133,13 @@ class CompactModel:
             print("Train epochs {}/{} - ".format(e, epochs), end="")
             batch_loss = batch_val_loss = []
             for img, mask in next_batch():
-                loss, val_loss = train_model.train_on_batch(img, mask)
+                loss = train_model.train_on_batch(img, mask)
+                val_loss = 0
                 batch_loss.append(loss)
                 batch_val_loss.append(loss)
 
             mean_batch_loss = np.mean(np.array(batch_loss))
-            mean_batch_val_loss = np.mean(np.array(batch_val_loss))
+            # mean_batch_val_loss = np.mean(np.array(batch_val_loss))
             history['loss'].append(mean_batch_loss)
             history['val_loss'].append(mean_batch_val_loss)
             print("Loss: {}, Val Loss: {} - {}".format(
