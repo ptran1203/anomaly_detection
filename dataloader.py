@@ -45,7 +45,7 @@ class DataGenerator:
 
     def augment(self, x, y, for_seg=True):
         seed = np.random.randint(0, 100)
-        new_x = utils.transform(x, seed))
+        new_x = utils.transform(x, seed)
         if for_seg:
             new_y = utils.transform(x, seed)
         else:
