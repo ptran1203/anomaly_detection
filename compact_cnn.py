@@ -128,7 +128,7 @@ class CompactModel:
             train_model = self.cls_model
             next_batch = data_gen.next_cls_batch
 
-        for e in epochs:
+        for e in range(epochs):
             start_time = datetime.datetime.now()
             print("Train epochs {}/{} - ".format(e, epochs), end="")
             batch_loss = batch_val_loss = []
