@@ -18,10 +18,10 @@ class DataGenerator:
 
         self.x = utils.norm(self.x)
         self.y = utils.norm(self.y)
-
+        self.classes = np.unique(self.labels)
         self.per_class_ids = {}
         ids = np.array(range(len(self.x)))
-        for c in classes:
+        for c in self.classes:
             self.per_class_ids[c] = ids[self.labels == c]
 
 
