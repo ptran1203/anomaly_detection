@@ -47,7 +47,7 @@ class DataGenerator:
         seed = np.random.randint(0, 100)
         new_x = utils.transform(x, seed)
         if for_seg:
-            new_y = utils.transform(x, seed)
+            new_y = utils.transform(y, seed)
         else:
             new_y = y
 
