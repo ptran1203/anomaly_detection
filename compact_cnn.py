@@ -5,7 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 from google.colab.patches import cv2_imshow
 import pickle
-
+import datetime
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.layers import (
     Input, Dense, Reshape,
@@ -24,6 +24,7 @@ class CompactModel:
         self.base_dir = base_dir
         self.rst = rst
         self.lr = lr
+        self.seg_his = {'loss': [], 'val_loss': []}
         self.seg_model = self.segment_model()
         self.cls_model = self.classification_model()
 
@@ -117,13 +118,28 @@ class CompactModel:
 
         return model
 
-    def train_seg_model(self, seg_generator, epochs, sample_weight):
+    def train_seg_model(self, data_gen, epochs, sample_weight):
+        self.seg_his['loss']
+        for e in epochs:
+            start_time = datetime.datetime.now()
+            print("Train SegModel epochs {}/{} - ".format(e, epochs), end="")
+            batch_loss = batch_val_loss = []
+            for img, mask in data_gen.next_seg_batch():
+                loss, val_loss = self.seg_model.train_on_batch(img, mask)
+                batch_loss.append(loss)
+                batch_val_loss.append(loss)
 
+            mean_batch_loss = np.mean(np.array(batch_loss))
+            mean_batch_val_loss = np.mean(np.array(batch_val_loss))
+            self.seg_his['loss'].append(mean_batch_loss)
+            self.seg_his['val_loss'].append(mean_batch_val_loss)
+            print("Loss: {}, Val Loss: {} - {}".format(
+                mean_batch_loss, mean_batch_val_loss,
+                datetime.datetime.now() - start_time
+            ))
 
-    def train(self, x, y, label, seg_epochs, cls_epochs, sample_weight=None):
-        print("Train segmetation model")
-        cv2_imshow(de_norm(x[15]))
-        cv2_imshow(de_norm(y[15]))
+    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None):
+        print("Train segmetation model")\
         self.seg_his = self.seg_model.fit(x, y,
                                           epochs=seg_epochs,
                                           batch_size=128,
