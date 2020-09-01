@@ -118,42 +118,39 @@ class CompactModel:
 
         return model
 
-    def train_seg_model(self, data_gen, epochs, sample_weight):
-        self.seg_his['loss']
+
+    def train_model(self, model, data_gen, epochs, sample_weight):
+        history = {"loss": [], "val_loss": []}
+        if model == 'seg':
+            train_model = self.seg_model
+            next_batch = data_gen.next_seg_batch
+        else:
+            train_model = self.cls_model
+            next_batch = data_gen.next_cls_batch
+
         for e in epochs:
             start_time = datetime.datetime.now()
-            print("Train SegModel epochs {}/{} - ".format(e, epochs), end="")
+            print("Train epochs {}/{} - ".format(e, epochs), end="")
             batch_loss = batch_val_loss = []
-            for img, mask in data_gen.next_seg_batch():
-                loss, val_loss = self.seg_model.train_on_batch(img, mask)
+            for img, mask in next_batch():
+                loss, val_loss = train_model.train_on_batch(img, mask)
                 batch_loss.append(loss)
                 batch_val_loss.append(loss)
 
             mean_batch_loss = np.mean(np.array(batch_loss))
             mean_batch_val_loss = np.mean(np.array(batch_val_loss))
-            self.seg_his['loss'].append(mean_batch_loss)
-            self.seg_his['val_loss'].append(mean_batch_val_loss)
+            history['loss'].append(mean_batch_loss)
+            history['val_loss'].append(mean_batch_val_loss)
             print("Loss: {}, Val Loss: {} - {}".format(
                 mean_batch_loss, mean_batch_val_loss,
                 datetime.datetime.now() - start_time
             ))
 
-    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None):
-        print("Train segmetation model")\
-        self.seg_his = self.seg_model.fit(x, y,
-                                          epochs=seg_epochs,
-                                          batch_size=128,
-                                          validation_split=0.2,
-                                          sample_weight=sample_weight
-                                        )
-        print("Train classification model")
-        self.cls_his = self.cls_model.fit(x, label,
-                                          epochs=cls_epochs,
-                                          batch_size=128,
-                                          validation_split=0.2,
-                                          sample_weight=sample_weight
-                                        )
+        return history
 
+    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None):
+        self.seg_his = self.train_model('seg', data_gen, seg_epochs, sample_weight)
+        self.cls_his = self.train_model('cls', data_gen, cls_epochs, sample_weight)
         self.plot_history()
 
 
