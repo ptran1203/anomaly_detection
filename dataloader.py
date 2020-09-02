@@ -55,7 +55,8 @@ class DataGenerator:
         labels = []
         for i in range(len(x)):
             imgs.append(x[i])
-            labels.append(y[i])
+            masks.append(y[i])
+            labels.append(labels[i])
             for _ in range(augment_factor):
                 _x, _y = self.augment_one(x[i], y[i])
                 imgs.append(_x)
