@@ -142,7 +142,7 @@ class CompactModel:
                 # sample_weight = utils.weighted_samples()
                 if model == 'combined':
                     # combined model
-                    seg_loss, cls_loss = self.combined.train_on_batch(img, [mask, label],
+                    _, seg_loss, cls_loss = self.combined.train_on_batch(img, [mask, label],
                                                                       sample_weight=sample_weight)
 
                     batch_loss['seg'].append(seg_loss)
