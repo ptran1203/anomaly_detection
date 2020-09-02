@@ -136,7 +136,10 @@ class CompactModel:
 
             batch_loss = batch_val_loss = []
             for img, mask in next_batch():
-                loss = train_model.train_on_batch(img, mask)
+                if model == 'seg':
+                    loss = self.seg_model.train_on_batch(img, mask, sample_weight=sample_weight)
+                else:
+                    loss = self.cls_model.train_on_batch(img, mask, sample_weight=sample_weight)
                 val_loss = 0
                 batch_loss.append(loss)
                 batch_val_loss.append(loss)
@@ -196,4 +199,3 @@ class CompactModel:
     def load_weight(self):
         self.seg_model.load_weights(self.base_dir + '/seg_model.h5')
         self.cls_model.load_weights(self.base_dir + '/cls_model.h5')
-
