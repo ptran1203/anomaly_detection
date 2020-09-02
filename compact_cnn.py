@@ -121,20 +121,13 @@ class CompactModel:
         return model
 
 
-    def train_model(self, model, data_gen, epochs, sample_weight):
+    def train_model(self, model, data_gen, epochs, sample_weight, augment_factor):
         print(" ==== Train model {} ====".format(model))
         print("Train on {} samples".format(len(data_gen.x)))
         history = {
                 "seg": [],
                 "cls": []
             }
-
-        if model == 'seg':
-            train_model = self.seg_model
-            next_batch = data_gen.next_seg_batch
-        else:
-            train_model = self.cls_model
-            next_batch = data_gen.next_cls_batch
 
         for e in range(epochs):
             start_time = datetime.datetime.now()
@@ -145,7 +138,7 @@ class CompactModel:
                 "cls": []
             }
 
-            for img, mask, label in next_batch():
+            for img, mask, label in data_gen.next_batch(augment_factor):
                 sample_weight = utils.weighted_samples()
                 if model == 'combined':
                     # combined model
@@ -178,15 +171,19 @@ class CompactModel:
 
         return history
 
-    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None, mode="combined"):
+    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None,
+            mode="combined", augment_factor=0):
         if mode == "combined":
             self.seg_his, self.cls_his = self.train_model('combined',
                                                           data_gen,
                                                           seg_epochs,
-                                                          sample_weight)
+                                                          sample_weight,
+                                                          augment_factor)
         else:
-            self.seg_his = self.train_model('seg', data_gen, seg_epochs, sample_weight)['seg']
-            self.cls_his = self.train_model('cls', data_gen, cls_epochs, sample_weight)['cls']
+            self.seg_his = self.train_model('seg', data_gen, seg_epochs,
+                                            sample_weight, augment_factor)['seg']
+            self.cls_his = self.train_model('cls', data_gen, cls_epochs,
+                                            sample_weight, augment_factor)['cls']
 
         self.plot_history(self.seg_his)
         self.plot_history(self.cls_his)
