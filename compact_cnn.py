@@ -121,7 +121,7 @@ class CompactModel:
         return model
 
 
-    def train_model(self, model, data_gen, epochs, sample_weight, augment_factor):
+    def train_model(self, model, data_gen, epochs, class_weight, augment_factor):
         print(" ==== Train model {} ====".format(model))
         print("Train on {} samples".format(len(data_gen.x)))
         history = {
@@ -139,7 +139,7 @@ class CompactModel:
             }
 
             for img, mask, label in data_gen.next_batch(augment_factor):
-                # sample_weight = utils.weighted_samples()
+                sample_weight = utils.weighted_samples(label, class_weight)
                 if model == 'combined':
                     # combined model
                     _, seg_loss, cls_loss = self.combined.train_on_batch(img, [mask, label],
@@ -171,21 +171,21 @@ class CompactModel:
 
         return history
 
-    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None,
+    def train(self, data_gen, seg_epochs, cls_epochs, class_weight=None,
             mode="combined", augment_factor=0):
         if mode == "combined":
             losses = self.train_model('combined',
                                     data_gen,
                                     seg_epochs,
-                                    sample_weight,
+                                    class_weight,
                                     augment_factor)
             self.seg_his = losses['seg']
             self.cls_his = losses['cls']
         else:
             self.seg_his = self.train_model('seg', data_gen, seg_epochs,
-                                            sample_weight, augment_factor)['seg']
+                                            class_weight, augment_factor)['seg']
             self.cls_his = self.train_model('cls', data_gen, cls_epochs,
-                                            sample_weight, augment_factor)['cls']
+                                            class_weight, augment_factor)['cls']
 
         self.plot_history(self.seg_his)
         self.plot_history(self.cls_his)
@@ -193,8 +193,7 @@ class CompactModel:
 
     @staticmethod
     def plot_history(his):
-        plt.plot(his['loss'], label='train loss')
-        plt.plot(his['val_loss'], label='val loss')
+        plt.plot(his, label='train loss')
         plt.ylabel('loss')
         plt.xlabel('epoch')
         plt.title('Segmentation model')

@@ -62,9 +62,9 @@ def transform(x, seed=0):
     return img
 
 
-def weighted_samples(labels, weight_map):
+def weighted_samples(labels, class_weight):
     w = []
     for i in range(len(labels)):
-        w.append(weight_map[labels[i]])
+        w.append(class_weight[labels[i]])
     
     return np.array(w)
