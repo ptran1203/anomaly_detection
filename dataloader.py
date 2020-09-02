@@ -6,10 +6,9 @@ import os
 from sklearn.model_selection import train_test_split
 
 class DataGenerator:
-    def __init__(self, base_dir, batch_size, prune=None, augment=2):
+    def __init__(self, base_dir, batch_size, prune=None):
         self.base_dir = base_dir
         self.batch_size = batch_size
-        self.augment = augment
 
         self.x = utils.pickle_load(os.path.join(self.base_dir, 'dataset/imgs.pkl'))
         self.y = utils.pickle_load(os.path.join(self.base_dir, 'dataset/labels.pkl'))
@@ -43,34 +42,33 @@ class DataGenerator:
             return self.dataset_x[to_return]
 
 
-    def augment_one(self, x, y, for_seg=True):
+    def augment_one(self, x, y):
         seed = np.random.randint(0, 100)
         new_x = utils.transform(x, seed)
-        if for_seg:
-            new_y = utils.transform(y, seed)
-        else:
-            new_y = y
-
+        new_y = utils.transform(y, seed)
         return new_x, new_y
 
-    def augment_array(self, x, y, for_seg=True):
+
+    def augment_array(self, x, y, labels, augment_factor):
         imgs = []
+        masks = []
         labels = []
         for i in range(len(x)):
             imgs.append(x[i])
             labels.append(y[i])
-            for _ in range(self.augment):
-                _x, _y = self.augment_one(x[i], y[i], for_seg)
+            for _ in range(augment_factor):
+                _x, _y = self.augment_one(x[i], y[i])
                 imgs.append(_x)
-                labels.append(_y)
+                masks.append(_y)
+                labels.append(labels[i])
+
+        return np.array(imgs), np.array(masks), np.array(labels)
 
 
-        return np.array(imgs), np.array(labels)
-
-
-    def next_seg_batch(self):
+    def next_batch(self, augment_factor):
         x = self.x
         y = self.y
+        labels = self.labels
 
         indices = np.arange(x.shape[0])
         np.random.shuffle(indices)
@@ -78,17 +76,10 @@ class DataGenerator:
         for start_idx in range(0, x.shape[0] - self.batch_size + 1, self.batch_size):
             access_pattern = indices[start_idx:start_idx + self.batch_size]
 
-            yield self.augment_array(x[access_pattern, :, :, :], y[access_pattern])
+            yield self.augment_array(
+                x[access_pattern, :, :, :],
+                y[access_pattern],
+                labels[access_pattern],
+                augment_factor,
+            )
 
-    def next_cls_batch(self):
-        x = self.x
-        y = self.labels
-
-        indices = np.arange(x.shape[0])
-        np.random.shuffle(indices)
-
-        for start_idx in range(0, x.shape[0] - self.batch_size + 1, self.batch_size):
-            access_pattern = indices[start_idx:start_idx + self.batch_size]
-
-            # yield self.augment_array(x[access_pattern, :, :, :], y[access_pattern], for_seg=False)
-            yield x[access_pattern, :, :, :], y[access_pattern]

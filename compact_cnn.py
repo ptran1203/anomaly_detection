@@ -18,6 +18,7 @@ from keras.layers import (
 )
 from keras.models import Sequential, Model, model_from_json
 from keras.optimizers import Adam
+import utils
 
 class CompactModel:
     def __init__(self, rst, lr, base_dir):
@@ -27,6 +28,7 @@ class CompactModel:
         self.seg_his = {'loss': [], 'val_loss': []}
         self.seg_model = self.segment_model()
         self.cls_model = self.classification_model()
+        self.combined = self.compact_cnn_model()
 
     def _conv_block(self, x, filters, kernel_size=3,
                     strides=1, activation='relu', name=None):
@@ -122,7 +124,11 @@ class CompactModel:
     def train_model(self, model, data_gen, epochs, sample_weight):
         print(" ==== Train model {} ====".format(model))
         print("Train on {} samples".format(len(data_gen.x)))
-        history = {"loss": [], "val_loss": []}
+        history = {
+                "seg": [],
+                "cls": []
+            }
+
         if model == 'seg':
             train_model = self.seg_model
             next_batch = data_gen.next_seg_batch
@@ -134,32 +140,58 @@ class CompactModel:
             start_time = datetime.datetime.now()
             print("Train epochs {}/{} - ".format(e + 1, epochs), end="")
 
-            batch_loss = batch_val_loss = []
-            for img, mask in next_batch():
-                if model == 'seg':
-                    loss = self.seg_model.train_on_batch(img, mask, sample_weight=sample_weight)
-                else:
-                    loss = self.cls_model.train_on_batch(img, mask, sample_weight=sample_weight)
-                val_loss = 0
-                batch_loss.append(loss)
-                batch_val_loss.append(loss)
+            batch_loss = {
+                "seg": [],
+                "cls": []
+            }
 
-            mean_batch_loss = np.mean(np.array(batch_loss))
-            mean_batch_val_loss = np.mean(np.array(batch_val_loss))
-            history['loss'].append(mean_batch_loss)
-            history['val_loss'].append(mean_batch_val_loss)
-            print("Loss: {}, Val Loss: {} - {}".format(
-                mean_batch_loss, mean_batch_val_loss,
+            for img, mask, label in next_batch():
+                sample_weight = utils.weighted_samples()
+                if model == 'combined':
+                    # combined model
+                    seg_loss, cls_loss = self.combined.train_on_batch(img, [mask, label],
+                                                                      sample_weight=sample_weight)
+
+                    batch_loss['seg'].append(seg_loss)
+                    batch_loss['cls'].append(cls_loss)
+                else:
+                    if model == 'seg':
+                        loss = self.seg_model.train_on_batch(img, mask, sample_weight=sample_weight)
+                    else:
+                        loss = self.cls_model.train_on_batch(img, label, sample_weight=sample_weight)
+                    
+                    batch_loss[model].append(loss)
+
+
+            mean_batch_loss = {
+                k: np.mean(np.array(batch_loss[k])) \
+                    for k in batch_loss
+            }
+
+            for k in mean_batch_loss:
+                history[k].append(mean_batch_loss[k])
+
+            print("Loss: {} - {}".format(
+                mean_batch_loss,
                 datetime.datetime.now() - start_time
             ))
 
         return history
 
-    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None):
-        self.seg_his = self.train_model('seg', data_gen, seg_epochs, sample_weight)
-        self.cls_his = self.train_model('cls', data_gen, cls_epochs, sample_weight)
+    def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None, mode="combined"):
+        if mode == "combined":
+            self.seg_his, self.cls_his = self.train_model('combined',
+                                                          data_gen,
+                                                          seg_epochs,
+                                                          cls_epochs,
+                                                          sample_weight)
+        else:
+            self.seg_his = self.train_model('seg', data_gen, seg_epochs, sample_weight)['seg']
+            self.cls_his = self.train_model('cls', data_gen, cls_epochs, sample_weight)['cls']
+
         self.plot_history(self.seg_his)
         self.plot_history(self.cls_his)
+
 
     @staticmethod
     def plot_history(his):
