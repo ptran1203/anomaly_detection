@@ -49,19 +49,19 @@ class DataGenerator:
         return new_x, new_y
 
 
-    def augment_array(self, x, y, labels, augment_factor):
+    def augment_array(self, x, y, z, augment_factor):
         imgs = []
         masks = []
         labels = []
         for i in range(len(x)):
             imgs.append(x[i])
             masks.append(y[i])
-            labels.append(labels[i])
+            labels.append(z[i])
             for _ in range(augment_factor):
                 _x, _y = self.augment_one(x[i], y[i])
                 imgs.append(_x)
                 masks.append(_y)
-                labels.append(labels[i])
+                labels.append(z[i])
 
         return np.array(imgs), np.array(masks), np.array(labels)
 
