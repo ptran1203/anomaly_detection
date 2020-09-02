@@ -183,7 +183,6 @@ class CompactModel:
             self.seg_his, self.cls_his = self.train_model('combined',
                                                           data_gen,
                                                           seg_epochs,
-                                                          cls_epochs,
                                                           sample_weight)
         else:
             self.seg_his = self.train_model('seg', data_gen, seg_epochs, sample_weight)['seg']
