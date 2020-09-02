@@ -139,7 +139,7 @@ class CompactModel:
             }
 
             for img, mask, label in data_gen.next_batch(augment_factor):
-                sample_weight = utils.weighted_samples()
+                # sample_weight = utils.weighted_samples()
                 if model == 'combined':
                     # combined model
                     seg_loss, cls_loss = self.combined.train_on_batch(img, [mask, label],
