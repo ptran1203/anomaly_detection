@@ -6,19 +6,19 @@ import os
 from sklearn.model_selection import train_test_split
 
 class DataGenerator:
-    def __init__(self, base_dir, batch_size, mode = 1,prune=None):
+    def __init__(self, base_dir, batch_size, mode = 1, cls=1, prune=None):
         TRAIN = 1
         TEST = 2
 
         self.base_dir = base_dir
         self.batch_size = batch_size
-
+        ds_dir = os.path.join(self.base_dir, 'dataset/class_{}'.format(cls))
         if mode == TRAIN:
-            self.x = utils.pickle_load(os.path.join(self.base_dir, 'dataset/imgs_train.pkl'))
-            self.y = utils.pickle_load(os.path.join(self.base_dir, 'dataset/masks_train.pkl'))
+            self.x = utils.pickle_load(ds_dir + '/imgs_train.pkl')
+            self.y = utils.pickle_load(ds_dir + '/marks_train.pkl')
         elif mode == TEST:
-            self.x = utils.pickle_load(os.path.join(self.base_dir, 'dataset/imgs_test.pkl'))
-            self.y = utils.pickle_load(os.path.join(self.base_dir, 'dataset/masks_test.pkl'))
+            self.x = utils.pickle_load(ds_dir + '/imgs_test.pkl')
+            self.y = utils.pickle_load(ds_dir + '/marks_test.pkl')
         else:
             raise("Invalid option, should be one {} or {}".format(TRAIN, TEST))
 
