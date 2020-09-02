@@ -60,3 +60,11 @@ def transform(x, seed=0):
         img = np.fliplr(img)
 
     return img
+
+
+def weighted_samples(labels, weight_map):
+    w = []
+    for i in range(len(labels)):
+        w.append(weight_map[labels[i]])
+    
+    return np.array(w)
