@@ -96,10 +96,10 @@ class CompactModel:
 
         model = Model(inputs=self.seg_model.input, outputs=out)
 
-        for i in range(len(model.layers)):
-            name = model.layers[i].name
-            if any([x in name for x in ['seg', 'featmap']]):
-                model.layers[i].trainable = False
+        # for i in range(len(model.layers)):
+        #     name = model.layers[i].name
+        #     if any([x in name for x in ['seg', 'featmap']]):
+        #         model.layers[i].trainable = False
 
         model.compile(optimizer='adadelta', loss='binary_crossentropy')
 
@@ -174,11 +174,13 @@ class CompactModel:
     def train(self, data_gen, seg_epochs, cls_epochs, sample_weight=None,
             mode="combined", augment_factor=0):
         if mode == "combined":
-            self.seg_his, self.cls_his = self.train_model('combined',
-                                                          data_gen,
-                                                          seg_epochs,
-                                                          sample_weight,
-                                                          augment_factor)
+            losses = self.train_model('combined',
+                                    data_gen,
+                                    seg_epochs,
+                                    sample_weight,
+                                    augment_factor)
+            self.seg_his = losses['seg']
+            self.cls_his = losses['cls']
         else:
             self.seg_his = self.train_model('seg', data_gen, seg_epochs,
                                             sample_weight, augment_factor)['seg']
