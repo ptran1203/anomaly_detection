@@ -120,23 +120,30 @@ class CompactModel:
 
         return model
 
+    @staticmethod
+    def init_hist():
+        return {
+            "seg": {
+                "loss": [],
+                "val_loss": [],
+            },
+            "cls": {
+                "loss": [],
+                "val_loss": [],
+            }
+        }
 
-    def train_model(self, model, data_gen, epochs, class_weight, augment_factor):
+
+    def train_model(self, model, data_gen, test_gen, epochs, class_weight, augment_factor):
         print(" ==== Train model {} ====".format(model))
         print("Train on {} samples".format(len(data_gen.x)))
-        history = {
-                "seg": [],
-                "cls": []
-            }
+        history = self.init_hist()
 
         for e in range(epochs):
             start_time = datetime.datetime.now()
             print("Train epochs {}/{} - ".format(e + 1, epochs), end="")
 
-            batch_loss = {
-                "seg": [],
-                "cls": []
-            }
+            batch_loss = self.init_hist()
 
             for img, mask, label in data_gen.next_batch(augment_factor):
                 sample_weight = utils.weighted_samples(label, class_weight)
@@ -145,27 +152,37 @@ class CompactModel:
                     _, seg_loss, cls_loss = self.combined.train_on_batch(img, [mask, label],
                                                                       sample_weight=sample_weight)
 
-                    batch_loss['seg'].append(seg_loss)
-                    batch_loss['cls'].append(cls_loss)
+                    batch_loss['seg']['loss'].append(seg_loss)
+                    batch_loss['cls']['loss'].append(cls_loss)
                 else:
                     if model == 'seg':
                         loss = self.seg_model.train_on_batch(img, mask, sample_weight=sample_weight)
                     else:
                         loss = self.cls_model.train_on_batch(img, label, sample_weight=sample_weight)
                     
-                    batch_loss[model].append(loss)
+                    batch_loss[model]['loss'].append(loss)
 
+            # evaluation
+            _, seg_val_loss, cls_val_loss self.combined.evaluate(test_gen.x, [test_gen.y, test_gen.labels])
+            batch_loss['seg']['val_loss'] = seg_val_loss
+            batch_loss['cls']['val_loss'] = cls_val_loss
 
-            mean_batch_loss = {
-                k: np.mean(np.array(batch_loss[k])) \
+            mean_loss = {
+                k: np.mean(np.array(batch_loss[k]['loss'])) \
                     for k in batch_loss
             }
 
-            for k in mean_batch_loss:
-                history[k].append(mean_batch_loss[k])
+            mean_val_loss = {
+                k: np.mean(np.array(batch_loss[k]['val_loss'])) \
+                    for k in batch_loss
+            }
 
-            print("Loss: {} - {}".format(
-                mean_batch_loss,
+            for k in mean_loss:
+                history[k]['loss'].append(mean_loss[k])
+                history[k]['val_loss'].append(mean_val_loss[k])
+
+            print("Loss: {}, Val Loss: {} - {}".format(
+                mean_loss,mean_val_loss,
                 datetime.datetime.now() - start_time
             ))
 
@@ -193,7 +210,8 @@ class CompactModel:
 
     @staticmethod
     def plot_history(his):
-        plt.plot(his, label='train loss')
+        plt.plot(his['loss'], label='train loss')
+        plt.plot(his['val_loss'], label='val loss')
         plt.ylabel('loss')
         plt.xlabel('epoch')
         plt.title('Segmentation model')
