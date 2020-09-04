@@ -163,7 +163,7 @@ class CompactModel:
                     batch_loss[model]['loss'].append(loss)
 
             # evaluation
-            _, seg_val_loss, cls_val_loss = self.combined.evaluate(test_gen.x, [test_gen.y, test_gen.labels])
+            _, seg_val_loss, cls_val_loss = self.combined.evaluate(test_gen.x, [test_gen.y, test_gen.labels], verbose=False)
             batch_loss['seg']['val_loss'] = seg_val_loss
             batch_loss['cls']['val_loss'] = cls_val_loss
 
