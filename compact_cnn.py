@@ -188,20 +188,21 @@ class CompactModel:
 
         return history
 
-    def train(self, data_gen, seg_epochs, cls_epochs, class_weight=None,
+    def train(self, data_gen, test_gen, seg_epochs, cls_epochs, class_weight=None,
             mode="combined", augment_factor=0):
         if mode == "combined":
             losses = self.train_model('combined',
                                     data_gen,
+                                    test_gen,
                                     seg_epochs,
                                     class_weight,
                                     augment_factor)
             self.seg_his = losses['seg']
             self.cls_his = losses['cls']
         else:
-            self.seg_his = self.train_model('seg', data_gen, seg_epochs,
+            self.seg_his = self.train_model('seg', data_gen, test_gen, seg_epochs,
                                             class_weight, augment_factor)['seg']
-            self.cls_his = self.train_model('cls', data_gen, cls_epochs,
+            self.cls_his = self.train_model('cls', data_gen, test_gen, cls_epochs,
                                             class_weight, augment_factor)['cls']
 
         self.plot_history(self.seg_his)
