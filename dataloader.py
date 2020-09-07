@@ -6,7 +6,7 @@ import os
 from sklearn.model_selection import train_test_split
 
 class DataGenerator:
-    def __init__(self, base_dir, batch_size, mode = 1, cls=1, prune=None):
+    def __init__(self, base_dir, batch_size, mode = 1, cls=1, prune=None, de_norm=False):
         TRAIN = 1
         TEST = 2
 
@@ -21,6 +21,10 @@ class DataGenerator:
             self.y = utils.pickle_load(ds_dir + '/marks_test.pkl')
         else:
             raise("Invalid option, should be one {} or {}".format(TRAIN, TEST))
+
+        if de_norm:
+            self.x = utils.de_norm(self.x)
+            self.y = utils.de_norm(self.y)
 
         self.labels = np.array([1 if np.sum(mask) > 0 else 0 for mask in self.y])
 

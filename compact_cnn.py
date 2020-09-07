@@ -96,10 +96,10 @@ class CompactModel:
 
         model = Model(inputs=self.seg_model.input, outputs=out)
 
-        # for i in range(len(model.layers)):
-        #     name = model.layers[i].name
-        #     if any([x in name for x in ['seg', 'featmap']]):
-        #         model.layers[i].trainable = False
+        for i in range(len(model.layers)):
+            name = model.layers[i].name
+            if any([x in name for x in ['seg', 'featmap']]):
+                model.layers[i].trainable = False
 
         model.compile(optimizer='adadelta', loss='binary_crossentropy')
 
