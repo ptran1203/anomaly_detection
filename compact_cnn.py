@@ -49,9 +49,9 @@ class CompactModel:
         image = Input(shape=(self.rst, self.rst, 1))
 
         # Block 1
-        x = self._conv_block(image, 32, kernel_size=9, strides=2, name='seg-1')
-        x = self._conv_block(x, 32, kernel_size=9, name='seg-2')
-        x = self._conv_block(x, 32, kernel_size=9, name='seg-3')
+        x = self._conv_block(image, 32, kernel_size=11, strides=2, name='seg-1')
+        x = self._conv_block(x, 32, kernel_size=11, name='seg-2')
+        x = self._conv_block(x, 32, kernel_size=11, name='seg-3')
 
         # Block 2
         x = self._conv_block(x, 64, kernel_size=7, strides=2, name='seg-4')
