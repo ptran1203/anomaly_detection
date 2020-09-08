@@ -31,7 +31,8 @@ class CompactModel:
         self.combined = self.compact_cnn_model()
 
     def _conv_block(self, x, filters, kernel_size=3,
-                    strides=1, activation='relu', name=None):
+                    strides=1, activation='relu', name=None,
+                    batch_norm=True):
         if name:
             cname = 'conv-' + name
             bname = 'bn-' + name
@@ -42,7 +43,11 @@ class CompactModel:
                     strides=strides, activation=activation,
                     kernel_initializer='random_normal',padding='same',
                     name=cname)(x)
-        return BatchNormalization(name=bname)(out)
+
+        if batch_norm:
+            out = BatchNormalization(name=bname)(out)
+
+        return out
 
 
     def segment_model(self):
@@ -65,18 +70,19 @@ class CompactModel:
 
         # Segmentation
         seg = self._conv_block(x, 1, kernel_size=1,
-                            activation='tanh',name='segmap')
+                            activation='tanh',name='segmap',
+                            batch_norm=False)
 
         model = Model(inputs=image, outputs=seg)
-        model.compile(optimizer='adadelta', loss='mean_squared_error')
+        model.compile(optimizer=Adam(self.lr), loss='binary_crossentropy')
         return model
 
 
     def classification_model(self):
-        seg_map_1 = GlobalMaxPooling2D()(self.seg_model.get_layer('bn-segmap').output)
+        seg_map_1 = GlobalMaxPooling2D()(self.seg_model.get_layer('conv-segmap').output)
         bn1 = BatchNormalization()(seg_map_1)
 
-        seg_map_2 = GlobalAveragePooling2D()(self.seg_model.get_layer('bn-segmap').output)
+        seg_map_2 = GlobalAveragePooling2D()(self.seg_model.get_layer('conv-segmap').output)
         bn2 = BatchNormalization()(seg_map_2)
 
         bn3 = self._conv_block(self.seg_model.get_layer('bn-featmap').output,
@@ -101,7 +107,7 @@ class CompactModel:
             if any([x in name for x in ['seg', 'featmap']]):
                 model.layers[i].trainable = False
 
-        model.compile(optimizer='adadelta', loss='binary_crossentropy')
+        model.compile(optimizer=Adam(self.lr), loss='binary_crossentropy')
 
         return model
 
@@ -110,12 +116,12 @@ class CompactModel:
         model = Model(
             inputs=self.cls_model.input,
             outputs=[
-                self.cls_model.get_layer('bn-segmap').output,
+                self.cls_model.get_layer('conv-segmap').output,
                 self.cls_model.get_layer('clsout').output,
             ]
         )
         model.compile(optimizer=Adam(self.lr),
-                    loss=['mean_squared_error', 'binary_crossentropy'],
+                    loss=['binary_crossentropy', 'binary_crossentropy'],
         )
 
         return model
@@ -245,5 +251,8 @@ class CompactModel:
         self.cls_model.save_weights(self.base_dir + '/cls_model.h5')
 
     def load_weight(self):
-        self.seg_model.load_weights(self.base_dir + '/seg_model.h5')
-        self.cls_model.load_weights(self.base_dir + '/cls_model.h5')
+        try:
+            self.seg_model.load_weights(self.base_dir + '/seg_model.h5')
+            self.cls_model.load_weights(self.base_dir + '/cls_model.h5')
+        except:
+            print("Load Weights failed!")
