@@ -74,7 +74,7 @@ class CompactModel:
                             batch_norm=False)
 
         model = Model(inputs=image, outputs=seg)
-        model.compile(optimizer=Adam(self.lr), loss='binary_crossentropy')
+        model.compile(optimizer=Adam(self.lr), loss='mse')
         return model
 
 
@@ -121,7 +121,7 @@ class CompactModel:
             ]
         )
         model.compile(optimizer=Adam(self.lr),
-                    loss=['binary_crossentropy', 'binary_crossentropy'],
+                    loss=['mse', 'binary_crossentropy'],
         )
 
         return model
