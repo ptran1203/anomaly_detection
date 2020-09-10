@@ -18,7 +18,7 @@ from keras.layers import (
 )
 from keras.models import Sequential, Model, model_from_json
 from keras.optimizers import Adam
-
+import datetime
 
 class AutoEncoder:
     def __init__(self, rst, lr, base_dir):
@@ -72,13 +72,47 @@ class AutoEncoder:
         return model
 
 
-    def train(self, x, y, epochs, sample_weight=None):
+    @staticmethod
+    def init_hist():
+        return {
+            "loss": [],
+            "val_loss": [],
+        }
+
+
+    def train(self, data_gen, test_gen, epochs=10, class_weight=None, augment_factor=0):
         print("Train autoencoder model")
-        self.ae_his = self.ae_model.fit(x, y,
-                                        epochs=epochs,
-                                        batch_size=64,
-                                        validation_split=0.1,
-                                        sample_weight=sample_weight)
+        print("Train on {} samples".format(len(data_gen.x)))
+        history = self.init_hist()
+
+        for e in range(epochs):
+            start_time = datetime.datetime.now()
+            print("Train epochs {}/{} - ".format(e + 1, epochs), end="")
+
+            batch_loss = self.init_hist()
+
+            for img, mask, label in data_gen.next_batch(augment_factor):
+                sample_weight = utils.weighted_samples(label, class_weight)
+                loss = self.ae_model.train_on_batch(img, mask, sample_weight=sample_weight)
+
+                batch_loss['loss'].append(loss)
+
+            # evaluation
+            batch_loss['val_loss'] = self.ae_model.evaluate(test_gen.x, test_gen.y, verbose=False)
+
+            mean_loss = np.mean(np.array(batch_loss['loss']))
+            mean_val_loss = np.mean(np.array(batch_loss['val_loss']))
+
+            history['loss'].append(mean_loss)
+            history['val_loss'].append(mean_val_loss)
+
+            print("Loss: {}, Val Loss: {} - {}".format(
+                mean_loss, mean_val_loss,
+                datetime.datetime.now() - start_time
+            ))
+
+        self.history = history
+        return history
 
 
     def show_output(self, x, y, idx):
@@ -92,11 +126,21 @@ class AutoEncoder:
         plt.subplot(131)
         plt.imshow(image[0].reshape(self.rst,self.rst))
         plt.subplot(132)
-        segmap = seg[0].reshape((28,28))
+        segmap = seg[0].reshape((self.rst,self.rst))
         plt.imshow(segmap.astype('uint8'))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.subplot(133)
         plt.imshow(mask[0].reshape(mask_rst, mask_rst))
+        plt.show()
+
+
+    def plot_history(self):
+        plt.plot(self.history['loss'], label='train loss')
+        plt.plot(self.history['val_loss'], label='val loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.title('Segmentation model')
+        plt.legend()
         plt.show()
 
 
