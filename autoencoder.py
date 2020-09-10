@@ -65,7 +65,7 @@ class AutoEncoder:
         up3 = self._deconv_block(up2, 48, 9, strides=2, skip_con=x2)
         up4 = self._deconv_block(up3, 48, 11, strides=2, skip_con=x1)
 
-        out = self._conv_block(up4, 96, 1, 1, activation='tanh')
+        out = self._conv_block(up4, 1, 1, 1, activation='tanh')
 
         model = Model(inputs=image, outputs=out)
         model.compile(optimizer=Adam(lr=self.lr), loss='mean_squared_error')
