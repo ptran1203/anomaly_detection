@@ -19,6 +19,7 @@ from keras.layers import (
 from keras.models import Sequential, Model, model_from_json
 from keras.optimizers import Adam
 import datetime
+import utils
 
 class AutoEncoder:
     def __init__(self, rst, lr, base_dir):
@@ -59,15 +60,15 @@ class AutoEncoder:
         x5 = self._conv_block(x4, 48, 3, strides=2)
 
         # Decode
-        up1 = self._deconv_block(x4, 48, 5, strides=2)
-        up2 = self._deconv_block(up1, 48, 7, strides=2, skip_con=x4)
-        up3 = self._deconv_block(up2, 48, 9, strides=2, skip_con=x3)
-        up4 = self._deconv_block(up3, 48, 11, strides=2, skip_con=x2)
+        up1 = self._deconv_block(x5, 48, 5, strides=2)
+        up2 = self._deconv_block(up1, 48, 7, strides=2, skip_con=x3)
+        up3 = self._deconv_block(up2, 48, 9, strides=2, skip_con=x2)
+        up4 = self._deconv_block(up3, 48, 11, strides=2, skip_con=x1)
 
         out = self._conv_block(up4, 96, 1, 1, activation='tanh')
 
         model = Model(inputs=image, outputs=out)
-        model.compile(optimizers=Adam(lr=self.lr), loss='mean_squared_error')
+        model.compile(optimizer=Adam(lr=self.lr), loss='mean_squared_error')
 
         return model
 
