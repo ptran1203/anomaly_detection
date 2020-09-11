@@ -1,7 +1,7 @@
 
 # Surface Anomaly Detection using Autoencoder on DAGM2007 dataset
 
-The repository implemented in keras based on the paper [Semi-supervised Anomaly Detection using AutoEncoders](https://arxiv.org/abs/2001.03674)
+This repository is implemented in keras based on the paper [Semi-supervised Anomaly Detection using AutoEncoders](https://arxiv.org/abs/2001.03674)
 
 ## Dataset
 - We trained this model on **class 2** of [DAGM2007](https://www.kaggle.com/mhskjelvareid/dagm-2007-competition-dataset-optical-inspection?) dataset
