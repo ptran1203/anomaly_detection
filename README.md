@@ -7,7 +7,7 @@ This repository is implemented in keras based on the paper [Semi-supervised Anom
 - We trained this model on **class 2** of [DAGM2007](https://www.kaggle.com/mhskjelvareid/dagm-2007-competition-dataset-optical-inspection?) dataset
 
 ## Usage
-- Run on google colab [here](/defect_detection.ipynb)
+- Run on google colab [here](/anomaly_detection.ipynb)
 
 ## Results
 - From right to left: *Input*, *model's predict* and *ground truth*
