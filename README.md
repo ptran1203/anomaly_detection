@@ -10,7 +10,6 @@ This repository is implemented in keras based on the paper [Semi-supervised Anom
 - Run on google colab [here](/anomaly_detection.ipynb)
 
 ## Results
-- From right to left: *Input*, *model's predict* and *ground truth*
 
 <img src="/images/defective_1.png">
 <p style="text-align:center"><b>Fig 1. </b>Defective</p>
