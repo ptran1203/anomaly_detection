@@ -235,9 +235,11 @@ class CompactModel:
         score = self.cls_model.predict(image)
         plt.figure(figsize=(18,10))
         plt.subplot(131)
+        plt.title("Input")
         plt.imshow(image[0].reshape(self.rst,self.rst))
         plt.subplot(132)
         segmap = seg[0].reshape((self.rst//4,self.rst//4))
+        plt.title("Input")
         plt.imshow(segmap.astype('uint8'))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         plt.text(0.2, 0.1, f'Score={score[0]}', fontsize=14,
