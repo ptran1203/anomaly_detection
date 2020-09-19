@@ -12,8 +12,5 @@ This repository is implemented in keras based on the paper [Semi-supervised Anom
 ## Results
 
 <img src="/images/defective_1.png">
-<p style="text-align:center"><b>Fig 1. </b>Defective</p>
 <img src="/images/defective_2.png">
-<p style="text-align:center"><b>Fig 2. </b>Defective</p>
 <img src="/images/non_defective_1.png">
-<p style="text-align:center"><b>Fig 3. </b>Non-Defective</p>
